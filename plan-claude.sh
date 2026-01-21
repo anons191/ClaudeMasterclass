@@ -20,8 +20,9 @@ echo "║     RALPH Ecosystem                   ║"
 echo "╚═══════════════════════════════════════╝"
 echo -e "${NC}"
 
-# Create plans directory
+# Create plans directory and prompt file
 mkdir -p plans
+PROMPT_FILE=$(mktemp)
 
 # Check for existing PRD
 if [ -f "plans/prd.json" ]; then
@@ -41,12 +42,7 @@ fi
 case $mode in
     1)
         # Full interview - start fresh
-        echo ""
-        echo -e "${GREEN}Starting comprehensive project interview...${NC}"
-        echo -e "${CYAN}Claude will use AskUserQuestion to interview you about your project.${NC}"
-        echo ""
-
-        claude --permission-mode acceptEdits -p "\
+        cat > "$PROMPT_FILE" << 'PROMPT'
 You are an expert product manager and software architect helping plan a new project.
 
 Your job is to conduct a thorough interview using the AskUserQuestion tool, then generate a prd.json file with well-defined, properly-sized features.
@@ -101,26 +97,26 @@ Use AskUserQuestion to confirm:
 After the interview, create TWO files:
 
 ### 1. plans/prd.json
-\`\`\`json
+```json
 [
   {
-    \"category\": \"functional|ui|api|data|config\",
-    \"description\": \"Clear, specific description\",
-    \"steps\": [
-      \"Verification step 1\",
-      \"Verification step 2\"
+    "category": "functional|ui|api|data|config",
+    "description": "Clear, specific description",
+    "steps": [
+      "Verification step 1",
+      "Verification step 2"
     ],
-    \"passes\": false
+    "passes": false
   }
 ]
-\`\`\`
+```
 
 ### 2. progress.txt
 Initialize with planning session notes:
-\`\`\`
+```
 # Progress Log
 
-## $(date +%Y-%m-%d) - Project Planning Session
+## [Today's Date] - Project Planning Session
 
 ### Project Overview
 [Summary of what was decided]
@@ -132,7 +128,7 @@ Initialize with planning session notes:
 [Any important context for the build phase]
 
 ---
-\`\`\`
+```
 
 ## Guidelines
 
@@ -145,20 +141,16 @@ Initialize with planning session notes:
 
 ## Begin
 
-Start by using AskUserQuestion to ask about the project type and core purpose.
-"
+Start NOW by using AskUserQuestion to ask about the project type and core purpose. Use the tool immediately.
+PROMPT
         ;;
 
     2)
         # Refine existing features
-        echo ""
-        echo -e "${GREEN}Starting feature refinement session...${NC}"
-        echo ""
-
-        claude --permission-mode acceptEdits -p "@plans/prd.json @progress.txt \
+        cat > "$PROMPT_FILE" << 'PROMPT'
 You are helping refine an existing PRD (Product Requirements Document).
 
-Read the current prd.json file. Your job is to interview the user to IMPROVE these features using the AskUserQuestion tool.
+Read the file plans/prd.json first. Your job is to interview the user to IMPROVE these features using the AskUserQuestion tool.
 
 ## For Each Feature, Use AskUserQuestion to Explore:
 
@@ -192,50 +184,25 @@ Update progress.txt with notes about what was refined and why.
 
 ## Begin
 
-Start by reviewing the features and using AskUserQuestion to ask which features the user wants to refine, or if they want you to review all of them.
-"
+First read plans/prd.json, then start by using AskUserQuestion to ask which features the user wants to refine.
+PROMPT
         ;;
 
     3)
         # Add new features
-        echo ""
-        echo -e "${GREEN}Starting feature discovery session...${NC}"
-        echo ""
-
-        claude --permission-mode acceptEdits -p "@plans/prd.json @progress.txt \
+        cat > "$PROMPT_FILE" << 'PROMPT'
 You are helping expand an existing PRD by discovering missing features.
 
-Read the current prd.json file. Your job is to find GAPS and MISSING features through an interview.
+Read the file plans/prd.json first. Your job is to find GAPS and MISSING features through an interview.
 
 ## Use AskUserQuestion to Explore Missing Areas:
 
-1. **Error Handling**
-   - What happens when things fail?
-   - Network errors, validation errors, unexpected states?
-
-2. **Edge Cases**
-   - Empty states (no data yet)
-   - Boundary conditions (max values, limits)
-   - First-time user experience
-
-3. **User Flows**
-   - Happy path covered, but what about alternatives?
-   - Admin vs regular user?
-   - Logged out vs logged in?
-
-4. **Security**
-   - Authentication covered?
-   - Authorization (who can do what)?
-   - Data protection?
-
-5. **Performance**
-   - Any loading states needed?
-   - Pagination for large lists?
-   - Caching?
-
-6. **Configuration**
-   - What should be configurable?
-   - Environment-specific settings?
+1. **Error Handling** - What happens when things fail?
+2. **Edge Cases** - Empty states, boundary conditions, first-time user
+3. **User Flows** - Alternative paths, admin vs regular user
+4. **Security** - Authentication, authorization, data protection
+5. **Performance** - Loading states, pagination, caching
+6. **Configuration** - What should be configurable?
 
 ## For Each New Feature Identified
 
@@ -252,15 +219,27 @@ Update progress.txt with notes about what was added.
 
 ## Begin
 
-Start by summarizing the existing features, then use AskUserQuestion to ask which area the user wants to explore for missing features.
-"
+First read plans/prd.json, then use AskUserQuestion to ask which area to explore for missing features.
+PROMPT
         ;;
 
     4)
         echo "Cancelled."
+        rm -f "$PROMPT_FILE"
         exit 0
         ;;
 esac
+
+echo ""
+echo -e "${GREEN}Starting Claude interview session...${NC}"
+echo -e "${CYAN}Claude will use AskUserQuestion to interview you.${NC}"
+echo ""
+
+# Run Claude interactively with the prompt
+claude --permission-mode acceptEdits "$PROMPT_FILE"
+
+# Cleanup
+rm -f "$PROMPT_FILE"
 
 echo ""
 echo -e "${GREEN}╔═══════════════════════════════════════╗${NC}"
