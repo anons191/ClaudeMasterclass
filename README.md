@@ -50,19 +50,21 @@ cd ClaudeMasterclass
 After installation, in any new project:
 
 ```bash
-# 1. Plan your project (creates prd.json)
-plan-init
+# 1. Plan your project with Claude interview (recommended)
+plan-claude
 
-# 2. Scaffold RALPH files (creates ralph.sh, ralph-once.sh, etc.)
+# 2. Scaffold RALPH files
 ralph-init
 
 # 3. Build with Claude
 ./ralph.sh 10
 ```
 
+**Alternative:** Use `plan-init` for simple bash-based planning (no Claude interview).
+
 If you downloaded scripts directly (manual install):
 ```bash
-./plan-init.sh
+./plan-claude.sh   # or ./plan-init.sh
 ./ralph-init.sh
 ./ralph.sh 10
 ```
@@ -98,26 +100,37 @@ Creates a structured `prd.json` through guided interviews.
 
 ---
 
-### 2. Plan-Claude: Deep-Dive Interviews
+### 2. Plan-Claude: AI-Driven Planning (Recommended)
 
-Uses Claude's AskUserQuestion tool for detailed feature interviews.
+Uses Claude's AskUserQuestion tool for comprehensive project interviews. **This is the recommended planning approach** from the masterclass.
 
 ```bash
-./plan-claude.sh
+plan-claude
 ```
 
 **Modes:**
 | Mode | Use When |
 |------|----------|
+| Start fresh | New project, full interview |
 | Refine existing | Features are vague, need more detail |
 | Add new features | Looking for missing features/edge cases |
-| Full interview | Starting fresh, want thorough planning |
+
+**Interview Phases:**
+1. **Project Overview** - Type, purpose, target users, MVP scope
+2. **Feature Discovery** - Core functionality, UI, data, integrations
+3. **Technical Decisions** - Frameworks, deployment, libraries
+4. **Feature Sizing** - Split large features, define verification steps
+5. **Validation** - Error handling, edge cases, priority order
+
+**Output:**
+- `plans/prd.json` - Your features (RALPH-compatible)
+- `progress.txt` - Planning notes for development context
 
 **Best for:**
+- Any new project (start here!)
 - Complex technical decisions
-- UI/UX details
-- Finding edge cases
-- Breaking down large features
+- Finding edge cases and missing features
+- Properly sizing features for RALPH
 
 ---
 
