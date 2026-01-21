@@ -10,22 +10,60 @@ The RALPH (Recursive Autonomous Loop for Programming Help) ecosystem helps you:
 3. **Verify** each feature with tests before moving on
 
 ```
-plan-init.sh → prd.json → ralph-init.sh → ralph.sh
-   (plan)        (PRD)      (scaffold)     (build)
+plan-init → prd.json → ralph-init → ralph.sh
+  (plan)      (PRD)     (scaffold)    (build)
+```
+
+---
+
+## Installation
+
+### One-Line Install (Recommended)
+
+```bash
+curl -sL https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/install.sh | bash
+```
+
+This installs `plan-init`, `plan-claude`, and `ralph-init` to `~/bin`.
+
+### Manual Install
+
+```bash
+# Download individual scripts to your project
+curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/plan-init.sh
+curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/plan-claude.sh
+curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/ralph-init.sh
+chmod +x *.sh
+```
+
+### Clone Repository
+
+```bash
+git clone https://github.com/anons191/ClaudeMasterclass.git
+cd ClaudeMasterclass
 ```
 
 ---
 
 ## Quick Start
 
-```bash
-# 1. Plan your project
-./plan-init.sh
+After installation, in any new project:
 
-# 2. Scaffold RALPH files
-./ralph-init.sh
+```bash
+# 1. Plan your project (creates prd.json)
+plan-init
+
+# 2. Scaffold RALPH files (creates ralph.sh, ralph-once.sh, etc.)
+ralph-init
 
 # 3. Build with Claude
+./ralph.sh 10
+```
+
+If you downloaded scripts directly (manual install):
+```bash
+./plan-init.sh
+./ralph-init.sh
 ./ralph.sh 10
 ```
 
