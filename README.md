@@ -320,6 +320,48 @@ Single iteration for manual review between each feature.
 
 ---
 
+## Notifications (via ntfy.sh)
+
+RALPH can send push notifications to your phone/desktop when important events occur.
+
+### Setup
+
+1. Pick a unique topic name (e.g., `my-ralph-builds-abc123`)
+2. Subscribe on your phone: Install [ntfy app](https://ntfy.sh) and subscribe to your topic
+3. Or subscribe in browser: Visit `ntfy.sh/YOUR_TOPIC`
+4. Edit `ralph.sh` and `ralph-once.sh`, set: `NTFY_TOPIC="your-topic-name"`
+
+### Events that trigger notifications
+
+| Event | Priority | When |
+|-------|----------|------|
+| Build Started | Default | RALPH begins a new build run |
+| Iteration Done | Low | Each feature iteration completes |
+| Needs Help | **Urgent** | Claude asked a question or is stuck |
+| Error Detected | High | Build/test error encountered |
+| Build Complete | High | All features successfully built |
+| Max Iterations | High | Stopped before completing PRD |
+
+### Example notification flow
+
+```
+📱 RALPH Started - Building 5 features over 10 max iterations
+📱 Iteration 1 Done - 4 features remaining
+📱 Iteration 2 Done - 3 features remaining
+📱 RALPH Needs Help - Claude is asking for human input!  ← Check terminal!
+📱 Iteration 3 Done - 2 features remaining
+📱 RALPH Complete! - All features built successfully after 4 iterations 🎉
+```
+
+### Why ntfy.sh?
+
+- **Free** - No account needed, no costs
+- **Simple** - Just HTTP POST, no API keys
+- **Cross-platform** - iOS, Android, Desktop, Web
+- **Self-hostable** - Run your own server if you prefer
+
+---
+
 ## PRD Format
 
 The `prd.json` file is both your requirements doc AND todo list:

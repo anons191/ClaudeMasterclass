@@ -125,9 +125,28 @@ generate_ralph_sh() {
 
 # RALPH Loop - Automated AI Development
 # Usage: ./ralph.sh <max_iterations>
-# Now with real-time visibility!
+# Now with real-time visibility and notifications!
 
 set -e
+
+# ─────────────────────────────────────────────────────────────
+# NOTIFICATION CONFIG (via ntfy.sh)
+# Set your topic to receive push notifications on phone/desktop
+# Get started: just pick a unique topic name and subscribe at ntfy.sh/YOUR_TOPIC
+# ─────────────────────────────────────────────────────────────
+NTFY_TOPIC=""  # e.g., "my-ralph-builds" - leave empty to disable notifications
+
+# Notification function
+notify() {
+    local title="$1"
+    local message="$2"
+    local priority="${3:-default}"  # low, default, high, urgent
+    local tags="${4:-robot}"        # emoji tags
+    if [ -n "$NTFY_TOPIC" ]; then
+        curl -s -H "Title: $title" -H "Priority: $priority" -H "Tags: $tags" \
+            -d "$message" "ntfy.sh/$NTFY_TOPIC" > /dev/null 2>&1 || true
+    fi
+}
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <iterations>"
@@ -147,6 +166,10 @@ echo ""
 count_remaining() {
     grep -c '"passes": false' plans/prd.json 2>/dev/null || echo "0"
 }
+
+# Notify build start
+TOTAL_FEATURES=$(count_remaining)
+notify "RALPH Started" "Building $TOTAL_FEATURES features over $1 max iterations" "default" "rocket"
 
 for ((i=1; i<=$1; i++)); do
     REMAINING=$(count_remaining)
@@ -247,7 +270,7 @@ EOF
     echo "" >> "$LOG_FILE"
     echo "Iteration $i completed at $(date +"%Y-%m-%d %H:%M:%S")" >> "$LOG_FILE"
 
-    # Check if complete
+    # Check for completion
     if grep -q "<promise>COMPLETE</promise>" "$OUTPUT_FILE" 2>/dev/null; then
         rm -f "$OUTPUT_FILE"
         echo ""
@@ -255,8 +278,25 @@ EOF
         echo "  PRD COMPLETE after $i iterations!"
         echo "  Full log: $LOG_FILE"
         echo "========================================"
+        notify "RALPH Complete!" "All features built successfully after $i iterations" "high" "tada,white_check_mark"
         exit 0
     fi
+
+    # Check if Claude asked the user a question (needs human input)
+    if grep -qi "AskUserQuestion\|need.*input\|please.*help\|stuck\|cannot.*proceed" "$OUTPUT_FILE" 2>/dev/null; then
+        notify "RALPH Needs Help" "Iteration $i: Claude is asking for human input. Check the terminal!" "urgent" "warning,question"
+    fi
+
+    # Check for errors/failures
+    if grep -qi "error:\|failed\|exception\|cannot.*find\|not.*found" "$OUTPUT_FILE" 2>/dev/null; then
+        if ! grep -qi "fixed\|resolved\|solved" "$OUTPUT_FILE" 2>/dev/null; then
+            notify "RALPH Error" "Iteration $i: Encountered an error. May need attention." "high" "x,warning"
+        fi
+    fi
+
+    # Notify iteration complete
+    NEW_REMAINING=$(count_remaining)
+    notify "Iteration $i Done" "$NEW_REMAINING features remaining" "low" "hammer"
 
     rm -f "$OUTPUT_FILE"
 done
@@ -267,6 +307,7 @@ echo "  Reached max iterations ($1)"
 echo "  PRD may not be complete"
 echo "  Full log: $LOG_FILE"
 echo "========================================"
+notify "RALPH Stopped" "Reached max iterations ($1). PRD may not be complete." "high" "stop_sign"
 RALPH_SCRIPT
 
     # Replace placeholders with actual commands
@@ -291,6 +332,23 @@ generate_ralph_once_sh() {
 
 set -e
 
+# ─────────────────────────────────────────────────────────────
+# NOTIFICATION CONFIG (via ntfy.sh)
+# Same topic as ralph.sh - set to receive notifications
+# ─────────────────────────────────────────────────────────────
+NTFY_TOPIC=""  # e.g., "my-ralph-builds" - leave empty to disable
+
+notify() {
+    local title="$1"
+    local message="$2"
+    local priority="${3:-default}"
+    local tags="${4:-robot}"
+    if [ -n "$NTFY_TOPIC" ]; then
+        curl -s -H "Title: $title" -H "Priority: $priority" -H "Tags: $tags" \
+            -d "$message" "ntfy.sh/$NTFY_TOPIC" > /dev/null 2>&1 || true
+    fi
+}
+
 # Count remaining features
 count_remaining() {
     grep -c '"passes": false' plans/prd.json 2>/dev/null || echo "0"
@@ -307,8 +365,9 @@ echo "  Features remaining: $REMAINING"
 echo "========================================"
 echo ""
 
-# Create temp file with prompt
+# Create temp files
 PROMPT_FILE=$(mktemp)
+OUTPUT_FILE=$(mktemp)
 cat > "$PROMPT_FILE" << 'EOF'
 Read these files first for context (if they exist):
 - @plans/KNOWLEDGE.md (codebase architecture, conventions)
@@ -353,19 +412,33 @@ EOF
 
 # Run Claude with the prompt file
 if command -v stdbuf &> /dev/null; then
-    cat "$PROMPT_FILE" | stdbuf -oL claude --dangerously-skip-permissions
+    cat "$PROMPT_FILE" | stdbuf -oL claude --dangerously-skip-permissions 2>&1 | tee "$OUTPUT_FILE"
 elif command -v gstdbuf &> /dev/null; then
-    cat "$PROMPT_FILE" | gstdbuf -oL claude --dangerously-skip-permissions
+    cat "$PROMPT_FILE" | gstdbuf -oL claude --dangerously-skip-permissions 2>&1 | tee "$OUTPUT_FILE"
 else
-    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions
+    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions 2>&1 | tee "$OUTPUT_FILE"
 fi
 
 # Cleanup
 rm -f "$PROMPT_FILE"
 
+# Check for completion
+if grep -q "<promise>COMPLETE</promise>" "$OUTPUT_FILE" 2>/dev/null; then
+    notify "RALPH Complete!" "All features built successfully!" "high" "tada,white_check_mark"
+fi
+
+# Check for questions needing input
+if grep -qi "AskUserQuestion\|need.*input\|please.*help" "$OUTPUT_FILE" 2>/dev/null; then
+    notify "RALPH Asked Question" "Claude needs your input!" "high" "question"
+fi
+
+NEW_REMAINING=$(count_remaining)
+rm -f "$OUTPUT_FILE"
+
 echo ""
 echo "========================================"
 echo "  Iteration complete. Review changes."
+echo "  Features remaining: $NEW_REMAINING"
 echo "  Run ./ralph-once.sh again to continue."
 echo "========================================"
 RALPH_ONCE_SCRIPT
