@@ -925,6 +925,72 @@ PYTHON_KNOWLEDGE
     echo -e "${GREEN}Created plans/KNOWLEDGE.md${NC}"
 }
 
+generate_learnings_md() {
+    echo -e "${YELLOW}Generating plans/LEARNINGS.md...${NC}"
+
+    cat > plans/LEARNINGS.md << 'LEARNINGS_CONTENT'
+# Runtime Learnings & Discoveries
+
+> This file captures what Claude learns while building features.
+> Updated automatically when errors are encountered or new patterns discovered.
+> **This is your debugging knowledge base** - solutions to problems encountered during development.
+
+---
+
+## How This File Works
+
+When Claude encounters:
+1. **Build/test errors** → Searches project docs, then web docs, then asks user
+2. **Unfamiliar code patterns** → Looks for examples in codebase and documentation
+3. **Solutions found** → Records them here for future reference
+
+---
+
+## Error Solutions
+
+> Format: `### [DATE] Error: <description>`
+> Followed by: What was tried, what worked, and why
+
+*(No errors encountered yet)*
+
+---
+
+## Library/Framework Notes
+
+> Discoveries about how specific libraries or frameworks work in this project
+
+*(No library notes yet)*
+
+---
+
+## Debugging Tips
+
+> Project-specific debugging strategies that worked
+
+*(No debugging tips yet)*
+
+---
+
+## External Documentation References
+
+> Useful external docs/resources discovered during development
+
+*(No external references yet)*
+
+---
+
+## Questions Asked & Answers
+
+> When Claude asked the user for help, record the Q&A here
+
+*(No Q&A recorded yet)*
+
+---
+LEARNINGS_CONTENT
+
+    echo -e "${GREEN}Created plans/LEARNINGS.md${NC}"
+}
+
 # ─────────────────────────────────────────────────────────────
 # PHASE 6: RALPH FILE GENERATION
 # ─────────────────────────────────────────────────────────────
@@ -979,7 +1045,8 @@ for ((i=1; i<=$1; i++)); do
 
     cat > "$PROMPT_FILE" << 'EOF'
 Read these files first for context:
-- @plans/KNOWLEDGE.md (codebase architecture, conventions, and learnings)
+- @plans/KNOWLEDGE.md (codebase architecture, conventions)
+- @plans/LEARNINGS.md (error solutions, discoveries from previous iterations)
 - @plans/prd.json (features to build)
 - @progress.txt (what's been done)
 
@@ -998,16 +1065,27 @@ Then:
 
 5. Append your progress to the progress.txt file.
 
-6. If you learned something new about the codebase (patterns, gotchas, important files, conventions),
-   append it to the "Learning Log" section at the bottom of plans/KNOWLEDGE.md with today's date.
+6. If you learned something new about the codebase (architecture, conventions),
+   append it to the "Learning Log" section in plans/KNOWLEDGE.md with today's date.
 
 7. Make a git commit of that feature.
+
+WHEN YOU ENCOUNTER ERRORS OR UNFAMILIAR CODE:
+- First, check plans/LEARNINGS.md - the solution may already be documented
+- Search for README.md files, docs/ folder, or inline comments in the codebase
+- Use web search to find framework/library documentation if needed
+- If still stuck, use AskUserQuestion to ask the user for help
+- ALWAYS record what you learned in plans/LEARNINGS.md:
+  - Under "Error Solutions" for build/test failures
+  - Under "Library/Framework Notes" for API discoveries
+  - Under "Questions Asked & Answers" if you asked the user
 
 IMPORTANT RULES:
 - ONLY WORK ON A SINGLE FEATURE
 - STAY UNDER 100K CONTEXT - If a feature is too large, break it into smaller pieces
 - It's better to do less and succeed than to fill up context and fail
 - FOLLOW the conventions documented in KNOWLEDGE.md
+- ALWAYS document solutions when you solve errors - future iterations need this!
 
 OUTPUT STATUS UPDATES as you work using this format:
 [STATUS] Reading PRD...
@@ -1015,6 +1093,8 @@ OUTPUT STATUS UPDATES as you work using this format:
 [STATUS] Creating: <filename>
 [STATUS] Running: <command>
 [STATUS] Tests: PASSED/FAILED
+[STATUS] Looking up docs for: <topic>
+[STATUS] Recording learning: <brief description>
 [STATUS] Committing...
 
 If, while implementing the feature, you notice the PRD is complete (all features have passes: true), output <promise>COMPLETE</promise>.
@@ -1091,7 +1171,8 @@ echo ""
 PROMPT_FILE=$(mktemp)
 cat > "$PROMPT_FILE" << 'EOF'
 Read these files first for context:
-- @plans/KNOWLEDGE.md (codebase architecture, conventions, and learnings)
+- @plans/KNOWLEDGE.md (codebase architecture, conventions)
+- @plans/LEARNINGS.md (error solutions, discoveries from previous iterations)
 - @plans/prd.json (features to build)
 - @progress.txt (what's been done)
 
@@ -1108,15 +1189,23 @@ Then:
 
 5. Append your progress to the progress.txt file.
 
-6. If you learned something new about the codebase (patterns, gotchas, important files),
-   append it to the "Learning Log" section at the bottom of plans/KNOWLEDGE.md.
+6. If you learned something new about the codebase (architecture, conventions),
+   append it to the "Learning Log" section in plans/KNOWLEDGE.md.
 
 7. Make a git commit of that feature.
+
+WHEN YOU ENCOUNTER ERRORS OR UNFAMILIAR CODE:
+- First, check plans/LEARNINGS.md - the solution may already be documented
+- Search for README.md files, docs/ folder, or inline comments in the codebase
+- Use web search to find framework/library documentation if needed
+- If still stuck, use AskUserQuestion to ask the user for help
+- ALWAYS record what you learned in plans/LEARNINGS.md
 
 IMPORTANT RULES:
 - ONLY WORK ON A SINGLE FEATURE
 - STAY UNDER 100K CONTEXT
 - FOLLOW the conventions documented in KNOWLEDGE.md
+- ALWAYS document solutions when you solve errors!
 
 OUTPUT STATUS UPDATES as you work.
 
@@ -1224,7 +1313,8 @@ This project has been onboarded to RALPH using automatic codebase analysis.
 | \`ralph.sh\` | Automated loop - runs until PRD complete |
 | \`ralph-once.sh\` | Single iteration - human reviews after each |
 | \`plans/prd.json\` | Your features/requirements (auto-populated) |
-| \`plans/KNOWLEDGE.md\` | Codebase knowledge base (architecture, conventions, learnings) |
+| \`plans/KNOWLEDGE.md\` | Codebase knowledge (architecture, conventions) |
+| \`plans/LEARNINGS.md\` | Runtime discoveries (error solutions, debugging tips) |
 | \`plans/analysis.json\` | Raw codebase analysis from Claude |
 | \`progress.txt\` | LLM memory - tracks what's been done |
 
@@ -1271,6 +1361,7 @@ print_success() {
     echo "  - ralph-once.sh        (human-in-the-loop)"
     echo "  - plans/prd.json       (smart PRD from analysis)"
     echo "  - plans/KNOWLEDGE.md   (codebase knowledge base)"
+    echo "  - plans/LEARNINGS.md   (runtime discoveries & error solutions)"
     echo "  - plans/analysis.json  (raw analysis data)"
     echo "  - progress.txt         (LLM memory with context)"
     echo "  - plans/README.md      (documentation)"
@@ -1325,6 +1416,7 @@ main() {
     # Phase 5: PRD generation
     generate_prd_from_analysis
     generate_knowledge_md
+    generate_learnings_md
 
     # Phase 6: RALPH file generation
     generate_ralph_sh

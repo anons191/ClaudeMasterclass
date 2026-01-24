@@ -240,7 +240,45 @@ through repositories in src/repositories/, not direct model calls.
 
 ---
 
-### 6. Ralph.sh: The Build Loop
+### 6. LEARNINGS.md: Runtime Discoveries & Error Solutions
+
+A separate file that captures what Claude learns while encountering errors or unfamiliar code.
+
+**Created by:** `ralph-existing` (template) or Claude (during first error)
+
+**Contains:**
+- **Error Solutions** - Build/test failures and how they were fixed
+- **Library/Framework Notes** - API discoveries and usage patterns
+- **Debugging Tips** - Project-specific debugging strategies
+- **External Doc References** - Useful documentation links found
+- **Questions & Answers** - When Claude asked the user for help
+
+**When Claude encounters errors or unknowns:**
+1. First checks LEARNINGS.md - solution may already be documented
+2. Searches project docs (README, docs/, comments)
+3. Uses web search for framework/library documentation
+4. Asks user if still stuck (via AskUserQuestion)
+5. **Always records the solution** in LEARNINGS.md for future iterations
+
+**Example entry:**
+```markdown
+## Error Solutions
+
+### [2024-01-15] Error: "Module not found: @prisma/client"
+
+**What happened:** Tests failed with missing prisma client
+**What was tried:** Running npm install (didn't help)
+**Solution:** Need to run `npx prisma generate` after install
+**Why:** Prisma generates the client from schema.prisma at build time
+```
+
+**Difference from KNOWLEDGE.md:**
+- `KNOWLEDGE.md` = Architecture, conventions, static knowledge
+- `LEARNINGS.md` = Runtime discoveries, error solutions, debugging tips
+
+---
+
+### 7. Ralph.sh: The Build Loop
 
 Automated AI development loop.
 
@@ -263,7 +301,7 @@ Automated AI development loop.
 
 ---
 
-### 7. Ralph-Once.sh: Human-in-the-Loop
+### 8. Ralph-Once.sh: Human-in-the-Loop
 
 Single iteration for manual review between each feature.
 
@@ -417,7 +455,8 @@ After setup, your project will have:
 your-project/
 ├── plans/
 │   ├── prd.json        # Your features
-│   ├── KNOWLEDGE.md    # Codebase knowledge base (if using ralph-existing)
+│   ├── KNOWLEDGE.md    # Codebase knowledge (architecture, conventions)
+│   ├── LEARNINGS.md    # Runtime discoveries (error solutions, debugging)
 │   ├── analysis.json   # Raw analysis data (if using ralph-existing)
 │   └── README.md       # RALPH docs
 ├── progress.txt        # LLM memory

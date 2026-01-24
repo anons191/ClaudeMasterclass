@@ -173,8 +173,9 @@ for ((i=1; i<=$1; i++)); do
     OUTPUT_FILE=$(mktemp)
 
     cat > "$PROMPT_FILE" << 'EOF'
-Read these files first for context:
-- @plans/KNOWLEDGE.md (codebase architecture, conventions, and learnings - if it exists)
+Read these files first for context (if they exist):
+- @plans/KNOWLEDGE.md (codebase architecture, conventions)
+- @plans/LEARNINGS.md (error solutions, discoveries from previous iterations)
 - @plans/prd.json (features to build)
 - @progress.txt (what's been done)
 
@@ -192,22 +193,28 @@ Then:
 4. Update the PRD (plans/prd.json) with the work that was done - set "passes" to true for the completed feature.
 
 5. Append your progress to the progress.txt file.
-   Use this to leave a note for the next person working in the codebase.
 
-6. If KNOWLEDGE.md exists and you learned something new about the codebase (patterns, gotchas, conventions),
-   append it to the "Learning Log" section at the bottom with today's date.
-   If KNOWLEDGE.md doesn't exist and this is a new project, create it with architecture notes.
+6. If KNOWLEDGE.md exists and you learned something new about architecture/conventions,
+   append it to the "Learning Log" section with today's date.
+   If KNOWLEDGE.md doesn't exist, create it with architecture notes.
 
 7. Make a git commit of that feature.
 
+WHEN YOU ENCOUNTER ERRORS OR UNFAMILIAR CODE:
+- First, check plans/LEARNINGS.md - the solution may already be documented
+- Search for README.md files, docs/ folder, or inline comments in the codebase
+- Use web search to find framework/library documentation if needed
+- If still stuck, use AskUserQuestion to ask the user for help
+- ALWAYS record what you learned in plans/LEARNINGS.md (create it if it doesn't exist):
+  - Under "Error Solutions" for build/test failures
+  - Under "Library/Framework Notes" for API discoveries
+  - Under "Questions Asked & Answers" if you asked the user
+
 IMPORTANT RULES:
 - ONLY WORK ON A SINGLE FEATURE
-- STAY UNDER 100K CONTEXT - If a feature is too large, break it into smaller pieces:
-  1. Complete a meaningful subset (e.g., one contract, one component)
-  2. Update progress.txt with what you completed and what remains
-  3. Mark the feature as "passes": false (still incomplete)
-  4. Exit and let the next iteration continue
+- STAY UNDER 100K CONTEXT - If a feature is too large, break it into smaller pieces
 - It's better to do less and succeed than to fill up context and fail
+- ALWAYS document solutions when you solve errors - future iterations need this!
 
 OUTPUT STATUS UPDATES as you work using this format:
 [STATUS] Reading PRD...
@@ -216,6 +223,8 @@ OUTPUT STATUS UPDATES as you work using this format:
 [STATUS] Editing: <filename>
 [STATUS] Running: <command>
 [STATUS] Tests: PASSED/FAILED
+[STATUS] Looking up docs for: <topic>
+[STATUS] Recording learning: <brief description>
 [STATUS] Committing...
 
 If, while implementing the feature, you notice the PRD is complete (all features have passes: true), output <promise>COMPLETE</promise>.
@@ -301,51 +310,45 @@ echo ""
 # Create temp file with prompt
 PROMPT_FILE=$(mktemp)
 cat > "$PROMPT_FILE" << 'EOF'
-Read these files first for context:
-- @plans/KNOWLEDGE.md (codebase architecture, conventions, and learnings - if it exists)
+Read these files first for context (if they exist):
+- @plans/KNOWLEDGE.md (codebase architecture, conventions)
+- @plans/LEARNINGS.md (error solutions, discoveries from previous iterations)
 - @plans/prd.json (features to build)
 - @progress.txt (what's been done)
 
 Then:
 
 1. Find the highest-priority feature to work on and work only on that feature.
-   This should be the one YOU decide has the highest priority - not necessarily the first in the list.
 
 2. Implement the feature. If KNOWLEDGE.md exists, follow the conventions documented there.
 
 3. Check that the types check via: __TYPECHECK_CMD__
    And that the tests pass via: __TEST_CMD__
-   (If these commands don't exist yet, set them up first)
 
-4. Update the PRD (plans/prd.json) with the work that was done - set "passes" to true for the completed feature.
+4. Update the PRD (plans/prd.json) - set "passes" to true for the completed feature.
 
 5. Append your progress to the progress.txt file.
 
-6. If KNOWLEDGE.md exists and you learned something new about the codebase,
-   append it to the "Learning Log" section at the bottom with today's date.
-   If KNOWLEDGE.md doesn't exist and this is a new project, create it with architecture notes.
+6. If KNOWLEDGE.md exists and you learned something new about architecture/conventions,
+   append it to the "Learning Log" section. Create KNOWLEDGE.md if it doesn't exist.
 
 7. Make a git commit of that feature.
 
+WHEN YOU ENCOUNTER ERRORS OR UNFAMILIAR CODE:
+- First, check plans/LEARNINGS.md - the solution may already be documented
+- Search for README.md files, docs/ folder, or inline comments in the codebase
+- Use web search to find framework/library documentation if needed
+- If still stuck, use AskUserQuestion to ask the user for help
+- ALWAYS record what you learned in plans/LEARNINGS.md (create it if it doesn't exist)
+
 IMPORTANT RULES:
 - ONLY WORK ON A SINGLE FEATURE
-- STAY UNDER 100K CONTEXT - If a feature is too large, break it into smaller pieces:
-  1. Complete a meaningful subset (e.g., one contract, one component)
-  2. Update progress.txt with what you completed and what remains
-  3. Mark the feature as "passes": false (still incomplete)
-  4. Exit and let the next iteration continue
-- It's better to do less and succeed than to fill up context and fail
+- STAY UNDER 100K CONTEXT
+- ALWAYS document solutions when you solve errors!
 
-OUTPUT STATUS UPDATES as you work using this format:
-[STATUS] Reading PRD...
-[STATUS] Selected feature: <feature description>
-[STATUS] Creating: <filename>
-[STATUS] Editing: <filename>
-[STATUS] Running: <command>
-[STATUS] Tests: PASSED/FAILED
-[STATUS] Committing...
+OUTPUT STATUS UPDATES as you work.
 
-If, while implementing the feature, you notice the PRD is complete (all features have passes: true), output <promise>COMPLETE</promise>.
+If the PRD is complete (all features have passes: true), output <promise>COMPLETE</promise>.
 EOF
 
 # Run Claude with the prompt file
