@@ -201,12 +201,46 @@ ralph-existing
 | `ralph.sh` | Automated loop |
 | `ralph-once.sh` | Human-in-the-loop |
 | `plans/prd.json` | Smart PRD (pre-populated!) |
+| `plans/KNOWLEDGE.md` | Codebase knowledge base |
 | `plans/analysis.json` | Raw analysis data |
 | `progress.txt` | LLM memory with codebase context |
 
 ---
 
-### 5. Ralph.sh: The Build Loop
+### 5. KNOWLEDGE.md: Codebase Knowledge Base
+
+A persistent documentation file that captures everything Claude learns about your codebase.
+
+**Created by:** `ralph-existing` (auto-generated from analysis)
+
+**Contains:**
+- **Architecture Overview** - How the codebase is structured, patterns, data flow
+- **Build Commands** - How to install, build, test, run, lint
+- **Code Conventions** - Naming patterns, file organization, coding standards
+- **Key Files** - Important files and their purposes
+- **Gotchas** - Non-obvious things developers should know
+- **Learning Log** - New discoveries appended during RALPH iterations
+
+**How it works:**
+1. `ralph-existing` generates initial KNOWLEDGE.md from codebase analysis
+2. RALPH reads it before each iteration for context
+3. When Claude learns something new, it appends to the Learning Log
+4. Knowledge accumulates over time, making builds more consistent
+
+**Example Learning Log entry:**
+```markdown
+## Learning Log
+
+[2024-01-15] - Discovered that the auth middleware requires Redis connection.
+Must run `docker-compose up redis` before running tests.
+
+[2024-01-16] - The UserService uses a repository pattern. All DB access goes
+through repositories in src/repositories/, not direct model calls.
+```
+
+---
+
+### 6. Ralph.sh: The Build Loop
 
 Automated AI development loop.
 
@@ -229,7 +263,7 @@ Automated AI development loop.
 
 ---
 
-### 6. Ralph-Once.sh: Human-in-the-Loop
+### 7. Ralph-Once.sh: Human-in-the-Loop
 
 Single iteration for manual review between each feature.
 
@@ -383,6 +417,8 @@ After setup, your project will have:
 your-project/
 ├── plans/
 │   ├── prd.json        # Your features
+│   ├── KNOWLEDGE.md    # Codebase knowledge base (if using ralph-existing)
+│   ├── analysis.json   # Raw analysis data (if using ralph-existing)
 │   └── README.md       # RALPH docs
 ├── progress.txt        # LLM memory
 ├── ralph.sh            # Automated loop

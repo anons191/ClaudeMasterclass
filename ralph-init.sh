@@ -173,12 +173,17 @@ for ((i=1; i<=$1; i++)); do
     OUTPUT_FILE=$(mktemp)
 
     cat > "$PROMPT_FILE" << 'EOF'
-Read the files @plans/prd.json and @progress.txt, then:
+Read these files first for context:
+- @plans/KNOWLEDGE.md (codebase architecture, conventions, and learnings - if it exists)
+- @plans/prd.json (features to build)
+- @progress.txt (what's been done)
+
+Then:
 
 1. Find the highest-priority feature to work on and work only on that feature.
    This should be the one YOU decide has the highest priority - not necessarily the first in the list.
 
-2. Implement the feature.
+2. Implement the feature. If KNOWLEDGE.md exists, follow the conventions documented there.
 
 3. Check that the types check via: __TYPECHECK_CMD__
    And that the tests pass via: __TEST_CMD__
@@ -189,7 +194,11 @@ Read the files @plans/prd.json and @progress.txt, then:
 5. Append your progress to the progress.txt file.
    Use this to leave a note for the next person working in the codebase.
 
-6. Make a git commit of that feature.
+6. If KNOWLEDGE.md exists and you learned something new about the codebase (patterns, gotchas, conventions),
+   append it to the "Learning Log" section at the bottom with today's date.
+   If KNOWLEDGE.md doesn't exist and this is a new project, create it with architecture notes.
+
+7. Make a git commit of that feature.
 
 IMPORTANT RULES:
 - ONLY WORK ON A SINGLE FEATURE
@@ -292,12 +301,17 @@ echo ""
 # Create temp file with prompt
 PROMPT_FILE=$(mktemp)
 cat > "$PROMPT_FILE" << 'EOF'
-Read the files @plans/prd.json and @progress.txt, then:
+Read these files first for context:
+- @plans/KNOWLEDGE.md (codebase architecture, conventions, and learnings - if it exists)
+- @plans/prd.json (features to build)
+- @progress.txt (what's been done)
+
+Then:
 
 1. Find the highest-priority feature to work on and work only on that feature.
    This should be the one YOU decide has the highest priority - not necessarily the first in the list.
 
-2. Implement the feature.
+2. Implement the feature. If KNOWLEDGE.md exists, follow the conventions documented there.
 
 3. Check that the types check via: __TYPECHECK_CMD__
    And that the tests pass via: __TEST_CMD__
@@ -306,9 +320,12 @@ Read the files @plans/prd.json and @progress.txt, then:
 4. Update the PRD (plans/prd.json) with the work that was done - set "passes" to true for the completed feature.
 
 5. Append your progress to the progress.txt file.
-   Use this to leave a note for the next person working in the codebase.
 
-6. Make a git commit of that feature.
+6. If KNOWLEDGE.md exists and you learned something new about the codebase,
+   append it to the "Learning Log" section at the bottom with today's date.
+   If KNOWLEDGE.md doesn't exist and this is a new project, create it with architecture notes.
+
+7. Make a git commit of that feature.
 
 IMPORTANT RULES:
 - ONLY WORK ON A SINGLE FEATURE
