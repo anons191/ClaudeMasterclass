@@ -125,6 +125,7 @@ generate_ralph_sh() {
 
 # RALPH Loop - Automated AI Development
 # Usage: ./ralph.sh <max_iterations>
+# Now with real-time visibility!
 
 set -e
 
@@ -134,44 +135,119 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+# Create logs directory
+mkdir -p logs
+
+# Create log file with timestamp
+LOG_FILE="logs/ralph-$(date +%Y-%m-%d-%H-%M-%S).log"
+echo "Logging to: $LOG_FILE"
+echo ""
+
+# Count remaining features
+count_remaining() {
+    grep -c '"passes": false' plans/prd.json 2>/dev/null || echo "0"
+}
+
 for ((i=1; i<=$1; i++)); do
+    REMAINING=$(count_remaining)
+    TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+
     echo ""
     echo "========================================"
     echo "  RALPH Loop - Iteration $i of $1"
+    echo "  Time: $TIMESTAMP"
+    echo "  Features remaining: $REMAINING"
+    echo "  Log: $LOG_FILE"
     echo "========================================"
     echo ""
 
-    result=$(claude --permission-mode acceptEdits -p "@plans/prd.json @progress.txt \
-1. Find the highest-priority feature to work on and work only on that feature. \
-This should be the one YOU decide has the highest priority - not necessarily the first in the list. \
-2. Check that the types check via __TYPECHECK_CMD__ and that the tests pass via __TEST_CMD__. \
-3. Update the PRD with the work that was done (set passes to true). \
-4. Append your progress to the progress.txt file. \
-Use this to leave a note for the next person working in the codebase. \
-5. Make a git commit of that feature. \
-ONLY WORK ON A SINGLE FEATURE. \
-If, while implementing the feature, you notice the PRD is complete, output <promise>COMPLETE</promise>. \
-")
+    # Log iteration header
+    echo "" >> "$LOG_FILE"
+    echo "======================================== ITERATION $i ========================================" >> "$LOG_FILE"
+    echo "Started: $TIMESTAMP" >> "$LOG_FILE"
+    echo "Features remaining: $REMAINING" >> "$LOG_FILE"
+    echo "" >> "$LOG_FILE"
 
-    echo "$result"
+    # Create temp files
+    PROMPT_FILE=$(mktemp)
+    OUTPUT_FILE=$(mktemp)
 
-    if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
+    cat > "$PROMPT_FILE" << 'EOF'
+Read the files @plans/prd.json and @progress.txt, then:
+
+1. Find the highest-priority feature to work on and work only on that feature.
+   This should be the one YOU decide has the highest priority - not necessarily the first in the list.
+
+2. Implement the feature.
+
+3. Check that the types check via: __TYPECHECK_CMD__
+   And that the tests pass via: __TEST_CMD__
+   (If these commands don't exist yet, set them up first)
+
+4. Update the PRD (plans/prd.json) with the work that was done - set "passes" to true for the completed feature.
+
+5. Append your progress to the progress.txt file.
+   Use this to leave a note for the next person working in the codebase.
+
+6. Make a git commit of that feature.
+
+IMPORTANT RULES:
+- ONLY WORK ON A SINGLE FEATURE
+- STAY UNDER 100K CONTEXT - If a feature is too large, break it into smaller pieces:
+  1. Complete a meaningful subset (e.g., one contract, one component)
+  2. Update progress.txt with what you completed and what remains
+  3. Mark the feature as "passes": false (still incomplete)
+  4. Exit and let the next iteration continue
+- It's better to do less and succeed than to fill up context and fail
+
+OUTPUT STATUS UPDATES as you work using this format:
+[STATUS] Reading PRD...
+[STATUS] Selected feature: <feature description>
+[STATUS] Creating: <filename>
+[STATUS] Editing: <filename>
+[STATUS] Running: <command>
+[STATUS] Tests: PASSED/FAILED
+[STATUS] Committing...
+
+If, while implementing the feature, you notice the PRD is complete (all features have passes: true), output <promise>COMPLETE</promise>.
+EOF
+
+    # Run Claude with real-time output AND capture to file
+    # Use unbuffer command if available (gstdbuf on macOS via brew install coreutils)
+    if command -v stdbuf &> /dev/null; then
+        cat "$PROMPT_FILE" | stdbuf -oL claude --dangerously-skip-permissions 2>&1 | tee -a "$LOG_FILE" "$OUTPUT_FILE" || true
+    elif command -v gstdbuf &> /dev/null; then
+        cat "$PROMPT_FILE" | gstdbuf -oL claude --dangerously-skip-permissions 2>&1 | tee -a "$LOG_FILE" "$OUTPUT_FILE" || true
+    else
+        cat "$PROMPT_FILE" | claude --dangerously-skip-permissions 2>&1 | tee -a "$LOG_FILE" "$OUTPUT_FILE" || true
+    fi
+
+    # Cleanup prompt file
+    rm -f "$PROMPT_FILE"
+
+    # Log completion
+    echo "" >> "$LOG_FILE"
+    echo "Iteration $i completed at $(date +"%Y-%m-%d %H:%M:%S")" >> "$LOG_FILE"
+
+    # Check if complete
+    if grep -q "<promise>COMPLETE</promise>" "$OUTPUT_FILE" 2>/dev/null; then
+        rm -f "$OUTPUT_FILE"
         echo ""
         echo "========================================"
         echo "  PRD COMPLETE after $i iterations!"
+        echo "  Full log: $LOG_FILE"
         echo "========================================"
-        # Uncomment one of these for notifications:
-        # terminal-notifier -title "RALPH" -message "PRD complete after $i iterations"
-        # notify-send "RALPH" "PRD complete after $i iterations"
-        # curl -d "PRD complete after $i iterations" ntfy.sh/your-topic
         exit 0
     fi
+
+    rm -f "$OUTPUT_FILE"
 done
 
 echo ""
 echo "========================================"
 echo "  Reached max iterations ($1)"
 echo "  PRD may not be complete"
+echo "  Full log: $LOG_FILE"
 echo "========================================"
 RALPH_SCRIPT
 
@@ -197,23 +273,75 @@ generate_ralph_once_sh() {
 
 set -e
 
+# Count remaining features
+count_remaining() {
+    grep -c '"passes": false' plans/prd.json 2>/dev/null || echo "0"
+}
+
+REMAINING=$(count_remaining)
+TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+
 echo ""
 echo "========================================"
 echo "  RALPH Once - Human in the Loop"
+echo "  Time: $TIMESTAMP"
+echo "  Features remaining: $REMAINING"
 echo "========================================"
 echo ""
 
-claude --permission-mode acceptEdits -p "@plans/prd.json @progress.txt \
-1. Find the highest-priority feature to work on and work only on that feature. \
-This should be the one YOU decide has the highest priority - not necessarily the first in the list. \
-2. Check that the types check via __TYPECHECK_CMD__ and that the tests pass via __TEST_CMD__. \
-3. Update the PRD with the work that was done (set passes to true). \
-4. Append your progress to the progress.txt file. \
-Use this to leave a note for the next person working in the codebase. \
-5. Make a git commit of that feature. \
-ONLY WORK ON A SINGLE FEATURE. \
-If, while implementing the feature, you notice the PRD is complete, output <promise>COMPLETE</promise>. \
-"
+# Create temp file with prompt
+PROMPT_FILE=$(mktemp)
+cat > "$PROMPT_FILE" << 'EOF'
+Read the files @plans/prd.json and @progress.txt, then:
+
+1. Find the highest-priority feature to work on and work only on that feature.
+   This should be the one YOU decide has the highest priority - not necessarily the first in the list.
+
+2. Implement the feature.
+
+3. Check that the types check via: __TYPECHECK_CMD__
+   And that the tests pass via: __TEST_CMD__
+   (If these commands don't exist yet, set them up first)
+
+4. Update the PRD (plans/prd.json) with the work that was done - set "passes" to true for the completed feature.
+
+5. Append your progress to the progress.txt file.
+   Use this to leave a note for the next person working in the codebase.
+
+6. Make a git commit of that feature.
+
+IMPORTANT RULES:
+- ONLY WORK ON A SINGLE FEATURE
+- STAY UNDER 100K CONTEXT - If a feature is too large, break it into smaller pieces:
+  1. Complete a meaningful subset (e.g., one contract, one component)
+  2. Update progress.txt with what you completed and what remains
+  3. Mark the feature as "passes": false (still incomplete)
+  4. Exit and let the next iteration continue
+- It's better to do less and succeed than to fill up context and fail
+
+OUTPUT STATUS UPDATES as you work using this format:
+[STATUS] Reading PRD...
+[STATUS] Selected feature: <feature description>
+[STATUS] Creating: <filename>
+[STATUS] Editing: <filename>
+[STATUS] Running: <command>
+[STATUS] Tests: PASSED/FAILED
+[STATUS] Committing...
+
+If, while implementing the feature, you notice the PRD is complete (all features have passes: true), output <promise>COMPLETE</promise>.
+EOF
+
+# Run Claude with the prompt file
+if command -v stdbuf &> /dev/null; then
+    cat "$PROMPT_FILE" | stdbuf -oL claude --dangerously-skip-permissions
+elif command -v gstdbuf &> /dev/null; then
+    cat "$PROMPT_FILE" | gstdbuf -oL claude --dangerously-skip-permissions
+else
+    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions
+fi
+
+# Cleanup
+rm -f "$PROMPT_FILE"
 
 echo ""
 echo "========================================"
@@ -233,6 +361,12 @@ RALPH_ONCE_SCRIPT
 
 # --- Generate prd.json ---
 generate_prd_json() {
+    # Don't overwrite existing PRD!
+    if [ -f "plans/prd.json" ]; then
+        echo -e "${GREEN}✓ plans/prd.json already exists - keeping your features${NC}"
+        return
+    fi
+
     echo -e "${YELLOW}Generating plans/prd.json...${NC}"
 
     cat > plans/prd.json << 'PRD_JSON'

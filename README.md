@@ -10,8 +10,11 @@ The RALPH (Recursive Autonomous Loop for Programming Help) ecosystem helps you:
 3. **Verify** each feature with tests before moving on
 
 ```
-plan-init → prd.json → ralph-init → ralph.sh
-  (plan)      (PRD)     (scaffold)    (build)
+New projects:    plan-init → prd.json → ralph-init → ralph.sh
+                   (plan)      (PRD)     (scaffold)    (build)
+
+Existing projects: ralph-existing → smart prd.json → ralph.sh
+                   (analyze+scaffold)    (PRD)         (build)
 ```
 
 ---
@@ -24,7 +27,7 @@ plan-init → prd.json → ralph-init → ralph.sh
 curl -sL https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/install.sh | bash
 ```
 
-This installs `plan-init`, `plan-claude`, and `ralph-init` to `~/bin`.
+This installs `plan-init`, `plan-claude`, `ralph-init`, and `ralph-existing` to `~/bin`.
 
 ### Manual Install
 
@@ -33,6 +36,7 @@ This installs `plan-init`, `plan-claude`, and `ralph-init` to `~/bin`.
 curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/plan-init.sh
 curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/plan-claude.sh
 curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/ralph-init.sh
+curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/ralph-existing.sh
 chmod +x *.sh
 ```
 
@@ -159,7 +163,50 @@ Sets up all files needed for the RALPH loop.
 
 ---
 
-### 4. Ralph.sh: The Build Loop
+### 4. Ralph-Existing: Codebase Analyzer (For Existing Projects)
+
+Analyzes your existing codebase with Claude and generates a smart PRD pre-populated with detected features.
+
+```bash
+ralph-existing
+# or
+./ralph-existing.sh
+```
+
+**What it does:**
+1. Scans your codebase (respects .gitignore)
+2. Sends key files to Claude for analysis
+3. Detects: tech stack, existing features, code structure, refactoring opportunities
+4. Generates a smart `prd.json` with:
+   - Existing features marked as `passes: true`
+   - Improvement tasks marked as `passes: false`
+5. Scaffolds all RALPH files
+
+**Analysis Includes:**
+| Category | What it Finds |
+|----------|---------------|
+| Tech Stack | Language, framework, libraries, testing setup, database |
+| Features | Already-implemented functionality with verification steps |
+| Structure | Architecture, entry points, routes, models, services |
+| Refactoring | Large files, complexity issues, suggested improvements |
+
+**When to Use:**
+- Onboarding an existing codebase to RALPH
+- You want Claude to understand what's already built
+- You want automated refactoring/improvement suggestions
+
+**Generated Files:**
+| File | Purpose |
+|------|---------|
+| `ralph.sh` | Automated loop |
+| `ralph-once.sh` | Human-in-the-loop |
+| `plans/prd.json` | Smart PRD (pre-populated!) |
+| `plans/analysis.json` | Raw analysis data |
+| `progress.txt` | LLM memory with codebase context |
+
+---
+
+### 5. Ralph.sh: The Build Loop
 
 Automated AI development loop.
 
@@ -182,7 +229,7 @@ Automated AI development loop.
 
 ---
 
-### 5. Ralph-Once.sh: Human-in-the-Loop
+### 6. Ralph-Once.sh: Human-in-the-Loop
 
 Single iteration for manual review between each feature.
 
@@ -249,6 +296,21 @@ The `prd.json` file is both your requirements doc AND todo list:
 
 # 4. Run the loop
 ./ralph.sh 10
+```
+
+### Onboarding an Existing Codebase (Recommended)
+
+```bash
+# 1. Run the analyzer - it does everything!
+ralph-existing
+# Scans codebase, generates smart PRD, scaffolds RALPH
+
+# 2. Review the auto-generated PRD
+cat plans/prd.json
+# Verify detected features, adjust priorities
+
+# 3. Start building improvements
+./ralph-once.sh
 ```
 
 ### Adding Features to Existing Project
