@@ -15,6 +15,9 @@ New projects:    plan-init → prd.json → ralph-init → ralph.sh
 
 Existing projects: ralph-existing → smart prd.json → ralph.sh
                    (analyze+scaffold)    (PRD)         (build)
+
+Code review:     ralph-review → review.json → (copy to prd.json) → ralph.sh
+                  (find issues)   (issues PRD)                       (fix)
 ```
 
 ---
@@ -29,7 +32,7 @@ Installs commands to `~/bin` for use anywhere:
 curl -sL https://raw.githubusercontent.com/anons191/let-ralph-cook/main/install.sh | bash
 ```
 
-After install, use: `plan-init`, `plan-claude`, `ralph-init`, `ralph-existing`
+After install, use: `plan-init`, `plan-claude`, `ralph-init`, `ralph-existing`, `ralph-review`, `ralph-review-auto`
 
 ### Local Install
 
@@ -39,7 +42,7 @@ Installs scripts to your current project directory only:
 curl -sL https://raw.githubusercontent.com/anons191/let-ralph-cook/main/install.sh | bash -s -- --local
 ```
 
-After install, use: `./plan-init.sh`, `./plan-claude.sh`, `./ralph-init.sh`, `./ralph-existing.sh`
+After install, use: `./plan-init.sh`, `./plan-claude.sh`, `./ralph-init.sh`, `./ralph-existing.sh`, `./ralph-review.sh`, `./ralph-review-auto.sh`
 
 ### Manual Install
 
@@ -49,6 +52,8 @@ curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/plan-init
 curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/plan-claude.sh
 curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/ralph-init.sh
 curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/ralph-existing.sh
+curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/ralph-review.sh
+curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/ralph-review-auto.sh
 chmod +x *.sh
 ```
 
@@ -329,6 +334,84 @@ Single iteration for manual review between each feature.
 - Building trust with the system
 - Complex/critical features
 - Learning how RALPH works
+
+---
+
+### 9. Ralph-Review: Code Quality & Bug Detection
+
+Reviews your codebase for bugs, security issues, performance problems, and code quality improvements. Creates a RALPH-compatible PRD of discovered issues.
+
+#### Interactive Mode (with interview)
+
+```bash
+ralph-review
+# or
+./ralph-review.sh
+```
+
+**Interview Phases:**
+1. **Review Context** - Known issues, recent changes, areas of concern
+2. **Issue Type Focus** - Bugs, security, performance, refactoring priorities
+3. **Scope Definition** - Directories to focus on, exclusions, analysis depth
+
+#### Automated Mode (no interview)
+
+```bash
+ralph-review-auto
+# or
+./ralph-review-auto.sh
+
+# With filters:
+./ralph-review-auto.sh --severity critical
+./ralph-review-auto.sh --type security
+./ralph-review-auto.sh --focus src/api
+```
+
+**CLI Options:**
+| Option | Values | Description |
+|--------|--------|-------------|
+| `--severity` | critical, high, medium, low, all | Filter by severity |
+| `--type` | bug, performance, security, refactor, edge-case, all | Filter by issue type |
+| `--focus` | directory path | Focus on specific directory |
+
+**Generated Files:**
+| File | Purpose |
+|------|---------|
+| `plans/review.json` | Issue PRD (RALPH-compatible) |
+| `review-progress.txt` | Review session tracking |
+
+**Issue Categories:**
+| Category | What it Finds |
+|----------|---------------|
+| `bug` | Logic errors, null checks, off-by-one, race conditions |
+| `performance` | N+1 queries, missing memoization, expensive operations |
+| `security` | Input validation, injection vulnerabilities, secrets in code |
+| `refactor` | Code duplication, complex functions, poor naming |
+| `edge-case` | Missing error handling, boundary conditions |
+
+**Severity Levels:**
+| Severity | Description |
+|----------|-------------|
+| `critical` | Security vulnerabilities, data loss, crashes |
+| `high` | Major bugs, significant performance issues |
+| `medium` | Minor bugs, moderate improvements |
+| `low` | Style issues, minor optimizations |
+
+**Fixing Issues with RALPH:**
+```bash
+# 1. Review discovered issues
+cat plans/review.json | jq '.[] | select(.severity == "critical")'
+
+# 2. Fix using RALPH loop
+cp plans/review.json plans/prd.json
+./ralph.sh 10
+```
+
+**When to Use:**
+- After building with RALPH to catch issues
+- Onboarding to an unfamiliar codebase
+- Security review before deployment
+- Performance audit
 
 ---
 
