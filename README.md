@@ -21,13 +21,25 @@ Existing projects: ralph-existing → smart prd.json → ralph.sh
 
 ## Installation
 
-### One-Line Install (Recommended)
+### Global Install (Recommended)
+
+Installs commands to `~/bin` for use anywhere:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/anons191/let-ralph-cook/main/install.sh | bash
 ```
 
-This installs `plan-init`, `plan-claude`, `ralph-init`, and `ralph-existing` to `~/bin`.
+After install, use: `plan-init`, `plan-claude`, `ralph-init`, `ralph-existing`
+
+### Local Install
+
+Installs scripts to your current project directory only:
+
+```bash
+curl -sL https://raw.githubusercontent.com/anons191/let-ralph-cook/main/install.sh | bash -s -- --local
+```
+
+After install, use: `./plan-init.sh`, `./plan-claude.sh`, `./ralph-init.sh`, `./ralph-existing.sh`
 
 ### Manual Install
 
