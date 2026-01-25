@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-REPO="https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main"
+REPO="https://raw.githubusercontent.com/anons191/let-ralph-cook/main"
 INSTALL_DIR="$HOME/bin"
 
 echo -e "${BLUE}"

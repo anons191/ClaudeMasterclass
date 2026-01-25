@@ -24,7 +24,7 @@ Existing projects: ralph-existing → smart prd.json → ralph.sh
 ### One-Line Install (Recommended)
 
 ```bash
-curl -sL https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/anons191/let-ralph-cook/main/install.sh | bash
 ```
 
 This installs `plan-init`, `plan-claude`, `ralph-init`, and `ralph-existing` to `~/bin`.
@@ -33,18 +33,18 @@ This installs `plan-init`, `plan-claude`, `ralph-init`, and `ralph-existing` to 
 
 ```bash
 # Download individual scripts to your project
-curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/plan-init.sh
-curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/plan-claude.sh
-curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/ralph-init.sh
-curl -O https://raw.githubusercontent.com/anons191/ClaudeMasterclass/main/ralph-existing.sh
+curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/plan-init.sh
+curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/plan-claude.sh
+curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/ralph-init.sh
+curl -O https://raw.githubusercontent.com/anons191/let-ralph-cook/main/ralph-existing.sh
 chmod +x *.sh
 ```
 
 ### Clone Repository
 
 ```bash
-git clone https://github.com/anons191/ClaudeMasterclass.git
-cd ClaudeMasterclass
+git clone https://github.com/anons191/let-ralph-cook.git
+cd let-ralph-cook
 ```
 
 ---
