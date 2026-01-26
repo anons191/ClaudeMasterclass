@@ -287,21 +287,32 @@ You MUST use the AskUserQuestion tool for the interview. Do NOT just ask questio
 
 ## Interview Phases
 
-### Phase 1: Review Context
+### Phase 1: What Do You Want to Change?
+START HERE. Use AskUserQuestion to ask the user directly what they want to change or improve.
+Ask an open-ended question like: "What do you want to change or improve in this codebase?"
+Let them explain their goals before diving into bug detection or code quality analysis.
+
+This could be:
+- Specific features they want to add or modify
+- Problems they've noticed
+- Areas they want to refactor
+- Performance or security concerns
+
+### Phase 2: Review Context
 Use AskUserQuestion to understand:
 - What areas of the codebase are you most concerned about?
 - Are there any known issues or user-reported bugs?
 - Have there been recent changes that might have introduced problems?
 - Which areas are most critical to the application?
 
-### Phase 2: Issue Type Focus
+### Phase 3: Issue Type Focus
 Use AskUserQuestion with options:
 - Which issue types should be prioritized?
   Options: bugs, performance, security, refactoring opportunities, edge cases, all of the above
 - What severity threshold matters most?
   Options: critical issues only, critical and high, all severities
 
-### Phase 3: Scope Definition
+### Phase 4: Scope Definition
 Use AskUserQuestion to clarify:
 - Are there specific directories or files to focus on?
 - Are there files or patterns to exclude from review?

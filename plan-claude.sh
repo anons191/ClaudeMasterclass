@@ -53,8 +53,12 @@ You MUST use the AskUserQuestion tool to interview the user. Do NOT just ask que
 
 ## Interview Phases
 
-### Phase 1: Project Overview
-Use AskUserQuestion to understand:
+### Phase 1: What Are We Building?
+START HERE. Use AskUserQuestion to ask the user to describe what they want to build.
+Ask an open-ended question like: "What are we building? Describe your project idea."
+Let them explain in their own words before you start categorizing or suggesting.
+
+Follow up to understand:
 - What type of project is this? (web app, API, CLI, mobile, etc.)
 - What is the core problem it solves?
 - Who are the target users?
