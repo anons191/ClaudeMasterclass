@@ -218,8 +218,8 @@ apply_context_limits() {
     )
 
     for category in "${all_categories[@]}"; do
-        local -n files_ref=$category
-        for file in "${files_ref[@]}"; do
+        eval "local files_in_category=(\"\${${category}[@]}\")"
+        for file in "${files_in_category[@]}"; do
             [ $file_count -ge $MAX_FILES ] && break 2
 
             if [ -f "$file" ]; then
