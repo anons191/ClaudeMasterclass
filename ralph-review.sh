@@ -352,10 +352,12 @@ PROMPT
 
 ## Output Requirements
 
-After the interview AND analysis, create TWO files:
+After the interview AND analysis, you MUST create exactly TWO files.
+IMPORTANT: The plans/ directory already exists. Use the EXACT paths shown below.
 
-### 1. plans/review.json
+### 1. plans/review.json (NOT review.json in root!)
 
+Use the Write tool to create the file at path: plans/review.json
 Create a JSON array with discovered issues. Format:
 ```json
 [
@@ -388,8 +390,9 @@ Create a JSON array with discovered issues. Format:
 - **medium**: Minor bugs, moderate code quality issues
 - **low**: Style issues, minor optimizations, nice-to-have improvements
 
-### 2. review-progress.txt
+### 2. review-progress.txt (in the project root)
 
+Use the Write tool to create the file at path: review-progress.txt
 Create a progress file with:
 ```
 # Review Progress Log
